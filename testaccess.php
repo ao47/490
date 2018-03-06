@@ -26,7 +26,7 @@ function doLogin($user,$pass){
 	$username=mysqli_real_escape_string($con,$user);
 	$password=mysqli_real_escape_string($con,$pass);
 	
-	$query=mysqli_query($con,"SELECT * FROM login where name='$username'");
+	$query=mysqli_query($con,"SELECT * FROM login where name='".$username."'");
 	$numrows=mysqli_num_rows($query);
 	if($numrows!=0){
 		while($row=mysqli_fetch_assoc($query)){
@@ -35,18 +35,29 @@ function doLogin($user,$pass){
 			$dbemail=$row['email'];
 		}
 		echo "success fetching array".PHP_EOL;
+
 		if(($username == $dbusername) && (password_verify($password,$dbpassword))){
 
 			echo "username and password verified".PHP_EOL;		
-			/*
+			
 			//return email in array
-			$request = array();
-			$request['valid']= 'true';
-			$request['email']= $dbemail;
-			$response = $client->publish($request);		*/
+			
+
 			$emailId=$dbemail;
-			$userId=$dbusername;
-			return true;
+                        $userId=$dbusername;
+			
+			//return array
+			 
+			$request = array();
+			$request['valid']= true;
+			$request['em']= "$emailId";
+			$request['userName']= "$userId";
+			return $request;
+			//$response = $client->publish($request);		
+			
+			//return true, email
+			//return array("returnCode" => '0', 'em' => "$emailId",'userName'=>"$userId" ,'message'=>"Server received request and processed");
+			
 		}
 	}
 	else {
@@ -55,7 +66,7 @@ function doLogin($user,$pass){
 //          $request['valid']= 'true';
 //          $request['email']= 'email';
 //          $response = $client->publish($request);
-	return false;
+		return array("returnCode" => '1');
 	}
 }
 
@@ -71,16 +82,21 @@ function requestProcessor($request){
     		return "ERROR: unsupported message type";
   	}
   switch ($request['type']){
-    case "loginTest":
+    case "login":
       return doLogin($request['username'],$request['password']);
     case "register":
       return doRegister($request['username'],$request['password']);
   }
-  return array("returnCode" => '0', 'em' => "$emailId",'userName'=>"$userId" ,'message'=>"Server received request and processed");
+  return array("returnCode" => '1', 'message'=>"Server received request and processed");
 }
 
 //Which queue am I accessing?
-$server = new rabbitMQServer("testLocal.ini", "testServer");
+
+//localtesting
+//$server = new rabbitMQServer("testLocal.ini", "testServer");
+
+//original
+$server = new rabbitMQServer("db.ini", "testServer");
 
 
 $server->process_requests('requestProcessor');
