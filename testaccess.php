@@ -49,6 +49,7 @@ function doLogin($user,$pass){
 			//return array
 			 
 			$request = array();
+		//	$request['type']= "processedLogin";
 			$request['valid']= true;
 			$request['em']= "$emailId";
 			$request['userName']= "$userId";
