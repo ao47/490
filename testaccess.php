@@ -49,7 +49,6 @@ function doLogin($user,$pass){
 			//return array
 			 
 			$request = array();
-		//	$request['type']= "processedLogin";
 			$request['valid']= true;
 			$request['em']= "$emailId";
 			$request['userName']= "$userId";
@@ -71,11 +70,38 @@ function doLogin($user,$pass){
 	}
 }
 
-function doRegister($username,$password){
-	return true;
+function doRegister($user,$pass,$email){
+
+	$con = mysqli_connect("localhost","root","12345","users") or die(mysqli_error());
+	$username=mysqli_real_escape_string($con,$user);
+	$password=password_hash((mysqli_real_escape_string($con,$pass)), PASSWORD_DEFAULT);
+	$mail=mysqli_real_escape_string($con,$email);
+
+	$query=mysqli_query($con,"SELECT * FROM login where name='".$username."'");
+	$numrows=mysqli_num_rows($query);
+		#if the user isn't in the database add them
+		if($numrows==0){
+			$sql="INSERT INTO login(name, email, passwd) VALUES('$username','$mail', '$password')";
+			$result=mysqli_query($con, $sql);
+			if($result){
+				$request = array();
+				$request['valid']= true;
+					return $request;
+			}
+			else{
+				$request = array();
+                       		$request['valid']= false;
+                               	return $request;
+			}
+	
+	
+		}
+		else {
+			$request = array();
+			$request['valid']= false;
+			return $request; 
+		}
 }
-
-
 function requestProcessor($request){
 	echo "received request".PHP_EOL;
 	var_dump($request);
@@ -86,7 +112,7 @@ function requestProcessor($request){
     case "login":
       return doLogin($request['username'],$request['password']);
     case "register":
-      return doRegister($request['username'],$request['password']);
+      return doRegister($request['username'],$request['password'],$request['email']);
   }
   return array("returnCode" => '1', 'message'=>"Server received request and processed");
 }
