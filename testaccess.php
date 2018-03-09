@@ -66,12 +66,12 @@ function doLogin($user,$pass){
 //          $request['valid']= 'true';
 //          $request['email']= 'email';
 //          $response = $client->publish($request);
-		return array("returnCode" => '1');
+		return array("valid" => false);
 	}
 }
 
 function doRegister($user,$pass,$email){
-
+/*
 	$con = mysqli_connect("localhost","root","12345","users") or die(mysqli_error());
 	$username=mysqli_real_escape_string($con,$user);
 	$password=password_hash((mysqli_real_escape_string($con,$pass)), PASSWORD_DEFAULT);
@@ -100,7 +100,7 @@ function doRegister($user,$pass,$email){
 			$request = array();
 			$request['valid']= false;
 			return $request; 
-		}
+		}*/
 }
 function requestProcessor($request){
 	echo "received request".PHP_EOL;
