@@ -15,13 +15,14 @@ else
 }
 
 $request = array();
-$request['timestamp'] =  date('m/d/y h:i:s a' ,time());
-$request['type'] = "loginTest";
-$request['username'] = "user11";
-$request['password'] = "user";
+//$request['timestamp'] =  date('m/d/y h:i:s a' ,time());
+$request['type'] = "event";
+$request['event'] = "message";
+$request['file'] = __FILE__;
+//$request['password'] = "user";
 //$request['message'] = $msg;
-$response = $client->send_request($request);
-//$response = $client->publish($request);
+//$response = $client->send_request($request);
+$response = $client->publish($request);
 
 echo "client received response: ".PHP_EOL;
 print_r($response);
