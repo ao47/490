@@ -4,7 +4,7 @@ include("account.php");
 require_once('path.inc');
 require_once('get_host_info.inc');
 require_once('rabbitMQLib.inc');
-require_once('logger.inc');
+//require_once('logger.inc');
 //private $con;
 //$con = mysqli_connect($hostname, $username, $password, "users") or die (mysqli_error());
 //$clientLog= new rabbitMQClient("logging.ini","testServer");
@@ -15,17 +15,13 @@ $emailId;
 $userId;
 function doLogin($user,$pass){
 //	$con = mysqli_connect($hostname, $username, $password, "users") or die (mysqli_error());
-	$logClient = new rabbitMQClient('toLog.ini', 'testServer');
-        $logger = new Logger();
 	$con = mysqli_connect("localhost","root","12345","users") or die(mysqli_error());
 	//need to log error
-	$eventMessage = 'Successfully Connected to Database';
-	$sendLog = $logger->logArray('event',$eventMessage,__FILE__);
-	$testVar = $logClient->publish($sendLog);
-	//echoing on my end to confirm successful connection
+
 	echo "connected to db".PHP_EOL;
-	echo $user.'is attempting to login'.PHP_EOL;
-		
+	echo $user.PHP_EOL;
+	
+	//
 	global $emailId, $userId;
 	$username=mysqli_real_escape_string($con,$user);
 	$password=mysqli_real_escape_string($con,$pass);

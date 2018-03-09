@@ -4,7 +4,7 @@ include("account.php");
 require_once('path.inc');
 require_once('get_host_info.inc');
 require_once('rabbitMQLib.inc');
-//require_once('logger.inc');
+require_once('logger.inc');
 //private $con;
 //$con = mysqli_connect($hostname, $username, $password, "users") or die (mysqli_error());
 //$clientLog= new rabbitMQClient("logging.ini","testServer");
@@ -15,12 +15,23 @@ $emailId;
 $userId;
 function doLogin($user,$pass){
 //	$con = mysqli_connect($hostname, $username, $password, "users") or die (mysqli_error());
+	$logClient = new rabbitMQClient('toLog.ini', 'testServer');
+        $logger = new Logger();	
+
 	$con = mysqli_connect("localhost","root","12345","users") or die(mysqli_error());
 	//need to log error
+	$eventMessage = 'Successfully Connected to Database';
+	$sendLog = $logger->logArray('event',$eventMessage,__FILE__);
+	$testVar = $logClient->publish($sendLog);
 
 	echo "connected to db".PHP_EOL;
-	echo $user.PHP_EOL;
+	echo $user." is attempting to login".PHP_EOL;
+	$eventMessage = $user." is attempting to login";
+        $sendLog = $logger->logArray('event',$eventMessage,__FILE__);
+        $testVar = $logClient->publish($sendLog);
 	
+
+
 	//
 	global $emailId, $userId;
 	$username=mysqli_real_escape_string($con,$user);
@@ -34,7 +45,7 @@ function doLogin($user,$pass){
 			$dbpassword=$row['passwd'];
 			$dbemail=$row['email'];
 		}
-		echo "success fetching array".PHP_EOL;
+		//echo "success fetching array".PHP_EOL;
 
 		if(($username == $dbusername) && (password_verify($password,$dbpassword))){
 
@@ -59,22 +70,61 @@ function doLogin($user,$pass){
 			//return array("returnCode" => '0', 'em' => "$emailId",'userName'=>"$userId" ,'message'=>"Server received request and processed");
 			
 		}
+		else {
+		//internal
+		echo "Wrong Username or Password".PHP_EOL;
+		//logging
+		$eventMessage = $user.'\'s username or password is wrong';
+        	$sendLog = $logger->logArray('event',$eventMessage,__FILE__);
+        	$testVar = $logClient->publish($sendLog);
+
+
+                return array("valid" => false);
+
+		}
 	}
 	else {
-	
+		echo "unsuccessful".PHP_EOL;	
 //			$request = array();
 //          $request['valid']= 'true';
 //          $request['email']= 'email';
 //          $response = $client->publish($request);
-		return array("returnCode" => '1');
+		return array("valid" => false);
 	}
 }
 
-function doRegister($username,$password){
-	return true;
+function doRegister($user,$pass,$email){
+
+	$con = mysqli_connect("localhost","root","12345","users") or die(mysqli_error());
+	$username=mysqli_real_escape_string($con,$user);
+	$password=password_hash((mysqli_real_escape_string($con,$pass)), PASSWORD_DEFAULT);
+	$mail=mysqli_real_escape_string($con,$email);
+
+	$query=mysqli_query($con,"SELECT * FROM login where name='".$username."'");
+	$numrows=mysqli_num_rows($query);
+		#if the user isn't in the database add them
+		if($numrows==0){
+			$sql="INSERT INTO login(name, email, passwd) VALUES('$username','$mail', '$password')";
+			$result=mysqli_query($con, $sql);
+			if($result){
+				$request = array();
+				$request['valid']= true;
+					return $request;
+			}
+			else{
+				$request = array();
+                       		$request['valid']= false;
+                               	return $request;
+			}
+	
+	
+		}
+		else {
+			$request = array();
+			$request['valid']= false;
+			return $request; 
+		}
 }
-
-
 function requestProcessor($request){
 	echo "received request".PHP_EOL;
 	var_dump($request);
@@ -85,7 +135,7 @@ function requestProcessor($request){
     case "login":
       return doLogin($request['username'],$request['password']);
     case "register":
-      return doRegister($request['username'],$request['password']);
+      return doRegister($request['username'],$request['password'],$request['email']);
   }
   return array("returnCode" => '1', 'message'=>"Server received request and processed");
 }
