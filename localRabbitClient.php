@@ -16,9 +16,9 @@ else
 
 $request = array();
 //$request['timestamp'] =  date('m/d/y h:i:s a' ,time());
-$request['type'] = "event";
-$request['event'] = "message";
-$request['file'] = __FILE__;
+$request['type'] = "login";
+$request['username'] = "user20";
+$request['password'] = "user";
 //$request['password'] = "user";
 //$request['message'] = $msg;
 //$response = $client->send_request($request);
