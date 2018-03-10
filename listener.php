@@ -10,18 +10,19 @@ require_once('logger.inc');
 //$clientLog= new rabbitMQClient("logging.ini","testServer");
 //$logger = new Logger();
 echo "Server running, awaiting messages from RABBIT ...".PHP_EOL;
-
+$getHostName = gethostname();
 $emailId;
 $userId;
 function doLogin($user,$pass){
 //	$con = mysqli_connect($hostname, $username, $password, "users") or die (mysqli_error());
 	$logClient = new rabbitMQClient('toLog.ini', 'testServer');
-        $logger = new Logger();	
+        $logger = new Logger();
+	global $getHostName;	
 
 	$con = mysqli_connect("localhost","root","12345","users") or die(mysqli_error());
 	//need to log error
 	$eventMessage = 'Successfully Connected to Database';
-	$sendLog = $logger->logArray('event',$eventMessage,__FILE__);
+	$sendLog = $logger->logArray('event',$eventMessage,__FILE__." on ".$getHostName);
 	$testVar = $logClient->publish($sendLog);
 
 	echo "connected to db".PHP_EOL;
