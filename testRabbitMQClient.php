@@ -16,9 +16,9 @@ else
 
 $request = array();
 $request['timestamp'] =  date('m/d/y h:i:s a' ,time());
-$request['type'] = "Login";
-$request['username'] = "steve";
-$request['password'] = "password";
+$request['type'] = "login";
+$request['username'] = "user20";
+$request['password'] = "user";
 $request['message'] = $msg;
 $response = $client->send_request($request);
 //$response = $client->publish($request);

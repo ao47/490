@@ -10,22 +10,30 @@ require_once('logger.inc');
 //$clientLog= new rabbitMQClient("logging.ini","testServer");
 //$logger = new Logger();
 echo "Server running, awaiting messages from RABBIT ...".PHP_EOL;
-
+$getHostName = gethostname();
 $emailId;
 $userId;
 function doLogin($user,$pass){
 //	$con = mysqli_connect($hostname, $username, $password, "users") or die (mysqli_error());
 	$logClient = new rabbitMQClient('toLog.ini', 'testServer');
         $logger = new Logger();
-	$con = mysqli_connect("localhost","root","12345","users") or die(mysqli_error());
+	global $getHostName;	
+
+	$con = mysqli_connect("backend","root","12345","users") or die(mysqli_error());
 	//need to log error
 	$eventMessage = 'Successfully Connected to Database';
-	$sendLog = $logger->logArray('event',$eventMessage,__FILE__);
+	$sendLog = $logger->logArray('event',$eventMessage,__FILE__." on ".$getHostName);
 	$testVar = $logClient->publish($sendLog);
-	//echoing on my end to confirm successful connection
+
 	echo "connected to db".PHP_EOL;
-	echo $user.'is attempting to login'.PHP_EOL;
-		
+	echo $user." is attempting to login".PHP_EOL;
+	$eventMessage = $user." is attempting to login";
+        $sendLog = $logger->logArray('event',$eventMessage,__FILE__);
+        $testVar = $logClient->publish($sendLog);
+	
+
+
+	//
 	global $emailId, $userId;
 	$username=mysqli_real_escape_string($con,$user);
 	$password=mysqli_real_escape_string($con,$pass);
@@ -38,7 +46,7 @@ function doLogin($user,$pass){
 			$dbpassword=$row['passwd'];
 			$dbemail=$row['email'];
 		}
-		echo "success fetching array".PHP_EOL;
+		//echo "success fetching array".PHP_EOL;
 
 		if(($username == $dbusername) && (password_verify($password,$dbpassword))){
 
@@ -63,9 +71,21 @@ function doLogin($user,$pass){
 			//return array("returnCode" => '0', 'em' => "$emailId",'userName'=>"$userId" ,'message'=>"Server received request and processed");
 			
 		}
+		else {
+		//internal
+		echo "Wrong Username or Password".PHP_EOL;
+		//logging
+		$eventMessage = $user.'\'s username or password is wrong';
+        	$sendLog = $logger->logArray('event',$eventMessage,__FILE__);
+        	$testVar = $logClient->publish($sendLog);
+
+
+                return array("valid" => false);
+
+		}
 	}
 	else {
-	
+		echo "unsuccessful".PHP_EOL;	
 //			$request = array();
 //          $request['valid']= 'true';
 //          $request['email']= 'email';
@@ -127,7 +147,7 @@ function requestProcessor($request){
 //$server = new rabbitMQServer("testLocal.ini", "testServer");
 
 //original
-$server = new rabbitMQServer("testRabbitMQ.ini", "testServer");
+$server = new rabbitMQServer("db.ini", "testServer");
 
 
 $server->process_requests('requestProcessor');
