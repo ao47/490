@@ -10,23 +10,24 @@ require_once('logger.inc');
 //$clientLog= new rabbitMQClient("logging.ini","testServer");
 //$logger = new Logger();
 echo "Server running, awaiting messages from RABBIT ...".PHP_EOL;
-$getHostName = gethostname();
+
 $emailId;
 $userId;
 function doLogin($user,$pass){
 //	$con = mysqli_connect($hostname, $username, $password, "users") or die (mysqli_error());
+	//logging variables
 	$logClient = new rabbitMQClient('toLog.ini', 'testServer');
         $logger = new Logger();
-	global $getHostName;	
+		
 
 	$con = mysqli_connect("localhost","root","12345","users") or die(mysqli_error());
 	//need to log error
 	$eventMessage = 'Successfully Connected to Database';
-	$sendLog = $logger->logArray('event',$eventMessage,__FILE__." on ".$getHostName);
+	$sendLog = $logger->logArray('event',$eventMessage,__FILE__);
 	$testVar = $logClient->publish($sendLog);
 
-	echo "connected to db".PHP_EOL;
-	echo $user." is attempting to login".PHP_EOL;
+	echo " Successfully Connected to Database".PHP_EOL;
+	echo $user." is attempting to Login".PHP_EOL;
 	$eventMessage = $user." is attempting to login";
         $sendLog = $logger->logArray('event',$eventMessage,__FILE__);
         $testVar = $logClient->publish($sendLog);
@@ -95,8 +96,21 @@ function doLogin($user,$pass){
 }
 
 function doRegister($user,$pass,$email){
+	//logger variables
+	$logClient = new rabbitMQClient('toLog.ini', 'testServer');
+        $logger = new Logger();
 
+
+	//connect to db
+	
 	$con = mysqli_connect("localhost","root","12345","users") or die(mysqli_error());
+	//local
+	echo "connected to db".PHP_EOL;
+	//event
+	$eventMessage = 'Successfully Connected to Database';
+        $sendLog = $logger->logArray('event',$eventMessage,__FILE__);
+        $testVar = $logClient->publish($sendLog);
+	
 	$username=mysqli_real_escape_string($con,$user);
 	$password=password_hash((mysqli_real_escape_string($con,$pass)), PASSWORD_DEFAULT);
 	$mail=mysqli_real_escape_string($con,$email);
@@ -108,11 +122,24 @@ function doRegister($user,$pass,$email){
 			$sql="INSERT INTO login(name, email, passwd) VALUES('$username','$mail', '$password')";
 			$result=mysqli_query($con, $sql);
 			if($result){
+				//local message
+				echo $username. " has successfully Registered".PHP_EOL;
+				//event
+				
+				$eventMessage = $username.' has successfully registered';
+			        $sendLog = $logger->logArray('event',$eventMessage,__FILE__);
+ 			       	$testVar = $logClient->publish($sendLog);
+	
+				//return valid array
 				$request = array();
 				$request['valid']= true;
 					return $request;
 			}
 			else{
+				//error  registering ??
+				//logging
+				
+				//return false array
 				$request = array();
                        		$request['valid']= false;
                                	return $request;
@@ -121,6 +148,15 @@ function doRegister($user,$pass,$email){
 	
 		}
 		else {
+			//local message
+			echo $username." is already in the Database".PHP_EOL;
+			
+			//event message
+			$eventMessage = $username.' is already in the Database';
+                        $sendLog = $logger->logArray('event',$eventMessage,__FILE__);
+                        $testVar = $logClient->publish($sendLog);
+			
+			//return array: Valid = False
 			$request = array();
 			$request['valid']= false;
 			return $request; 
