@@ -11,7 +11,7 @@ echo "Server running, awaiting messages from RABBIT ...".PHP_EOL;
 $emailId;
 $userId;
 function doLogin($user,$pass){
-//	$con = mysqli_connect($hostname, $username, $password, "users") or die (mysqli_error());
+
 	//logging variables
 	$logClient = new rabbitMQClient('toLog.ini', 'testServer');
         $logger = new Logger();
@@ -111,7 +111,16 @@ function doRegister($user,$pass,$email){
 
 	//connect to db
 	
-	$con = mysqli_connect("localhost","root","12345","users") or die(mysqli_error());
+	$con = mysqli_connect("localhost","root","12345","users");
+	 //check for connection error and logging
+        if(!$con){
+                $errorMessage = 'Connection Error:'.mysqli_connect_error();
+                $sendLog = $logger->logArray('error',$errorMessage,__FILE__);
+                $testVar = $logClient->publish($sendLog);
+                die("Connection Error:".mysqli_connect_error());
+        }
+
+
 	//local- Connected to DB
 	echo "connected to db".PHP_EOL;
 	//event - Connected to DB
