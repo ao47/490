@@ -17,8 +17,17 @@ function doLogin($user,$pass){
         $logger = new Logger();
 		
 
-	$con = mysqli_connect("localhost","root","12345","users") or die(mysqli_error());
-	//need to log error
+	$con = mysqli_connect("localhost","root","12345","users");
+	//check for connection error and logging
+	if(!$con){
+		$errorMessage = 'Connection Error:'.mysqli_connect_error();
+                $sendLog = $logger->logArray('error',$errorMessage,__FILE__);
+                $testVar = $logClient->publish($sendLog);
+		die("Connection Error:".mysqli_connect_error());
+	}
+
+	
+	//Event - connected to DB
 	$eventMessage = 'Successfully Connected to Database';
 	$sendLog = $logger->logArray('event',$eventMessage,__FILE__);
 	$testVar = $logClient->publish($sendLog);
