@@ -6,6 +6,7 @@ require_once('get_host_info.inc');
 require_once('rabbitMQLib.inc');
 require_once('logger.inc');
 //private $con;
+echo date('m/d/y h:i:s a' ,time()).PHP_EOL;
 echo "Server running, awaiting messages from RABBIT ...".PHP_EOL;
 
 $emailId;
@@ -38,8 +39,6 @@ function doLogin($user,$pass){
         $sendLog = $logger->logArray('event',$eventMessage,__FILE__);
         $testVar = $logClient->publish($sendLog);
 	
-
-
 	//
 	global $emailId, $userId;
 	$username=mysqli_real_escape_string($con,$user);
@@ -82,9 +81,9 @@ function doLogin($user,$pass){
 		}
 		else {
 		//internal
-		echo date('m/d/y h:i:s a' ,time())." Wrong Username or Password".PHP_EOL;
-		//logging - Wrong username or password
-		$eventMessage = $user.'\'s username or password is wrong';
+		echo date('m/d/y h:i:s a' ,time()).$user."/'s  Password is invalid".PHP_EOL;
+		//logging - Wrong password
+		$eventMessage = $user.'\'s password is incorrect';
         	$sendLog = $logger->logArray('event',$eventMessage,__FILE__);
         	$testVar = $logClient->publish($sendLog);
 
@@ -94,11 +93,12 @@ function doLogin($user,$pass){
 		}
 	}
 	else {
-		echo date('m/d/y h:i:s a' ,time())." unsuccessful".PHP_EOL;	
-//			$request = array();
-//          $request['valid']= 'true';
-//          $request['email']= 'email';
-//          $response = $client->publish($request);
+		echo date('m/d/y h:i:s a' ,time())." ".$user." Doesn\'t Exist ".PHP_EOL;	
+		//logging - User doesnt exist
+		$eventMessage = $user.' doesn\'t exist';
+                $sendLog = $logger->logArray('event',$eventMessage,__FILE__);
+                $testVar = $logClient->publish($sendLog);
+		//return array
 		return array("valid" => false);
 	}
 }
