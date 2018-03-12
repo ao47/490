@@ -93,7 +93,7 @@ function doLogin($user,$pass){
 		}
 	}
 	else {
-		echo date('m/d/y h:i:s a' ,time())." ".$user." Doesn\'t Exist ".PHP_EOL;	
+		echo date('m/d/y h:i:s a' ,time())." ".$user." Doesn't Exist ".PHP_EOL;	
 		//logging - User doesnt exist
 		$eventMessage = $user.' doesn\'t exist';
                 $sendLog = $logger->logArray('event',$eventMessage,__FILE__);
@@ -161,8 +161,6 @@ function doRegister($user,$pass,$email){
                        		$request['valid']= false;
                                	return $request;
 			}
-	
-	
 		}
 		else {
 			//local message - Already in DB
