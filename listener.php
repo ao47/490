@@ -1,6 +1,6 @@
 #!/usr/bin/php
 <?php
-include("account.php");
+//include("account.php");
 require_once('path.inc');
 require_once('get_host_info.inc');
 require_once('rabbitMQLib.inc');
@@ -178,6 +178,9 @@ function doRegister($user,$pass,$email){
 		}
 }
 function requestProcessor($request){
+	$logClient = new rabbitMQClient('toLog.ini', 'testServer');
+        $logger = new Logger();
+
 	echo date('m/d/y h:i:s a' ,time())." received request".PHP_EOL;
 	var_dump($request);
 	if(!isset($request['type'])){
