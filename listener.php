@@ -6,9 +6,6 @@ require_once('get_host_info.inc');
 require_once('rabbitMQLib.inc');
 require_once('logger.inc');
 //private $con;
-//$con = mysqli_connect($hostname, $username, $password, "users") or die (mysqli_error());
-//$clientLog= new rabbitMQClient("logging.ini","testServer");
-//$logger = new Logger();
 echo "Server running, awaiting messages from RABBIT ...".PHP_EOL;
 
 $emailId;
@@ -26,7 +23,7 @@ function doLogin($user,$pass){
 	$sendLog = $logger->logArray('event',$eventMessage,__FILE__);
 	$testVar = $logClient->publish($sendLog);
 
-	echo " Successfully Connected to Database".PHP_EOL;
+	echo "Successfully Connected to Database".PHP_EOL;
 	echo $user." is attempting to Login".PHP_EOL;
 	$eventMessage = $user." is attempting to login";
         $sendLog = $logger->logArray('event',$eventMessage,__FILE__);
@@ -50,17 +47,20 @@ function doLogin($user,$pass){
 		//echo "success fetching array".PHP_EOL;
 
 		if(($username == $dbusername) && (password_verify($password,$dbpassword))){
-
+			//internal message
 			echo "username and password verified".PHP_EOL;		
-			
-			//return email in array
-			
+			echo $user." has logged in".PHP_EOL;
+	
 
-			$emailId=$dbemail;
-                        $userId=$dbusername;
+			//Logging - Logged in
+			$eventMessage = $user.' has logged in.';
+                	$sendLog = $logger->logArray('event',$eventMessage,__FILE__);
+                	$testVar = $logClient->publish($sendLog);	
 			
+	
 			//return array
-			 
+			$emailId=$dbemail;
+                        $userId=$dbusername; 
 			$request = array();
 			$request['valid']= true;
 			$request['em']= "$emailId";
@@ -68,14 +68,13 @@ function doLogin($user,$pass){
 			return $request;
 			//$response = $client->publish($request);		
 			
-			//return true, email
-			//return array("returnCode" => '0', 'em' => "$emailId",'userName'=>"$userId" ,'message'=>"Server received request and processed");
+			
 			
 		}
 		else {
 		//internal
 		echo "Wrong Username or Password".PHP_EOL;
-		//logging
+		//logging - Wrong username or password
 		$eventMessage = $user.'\'s username or password is wrong';
         	$sendLog = $logger->logArray('event',$eventMessage,__FILE__);
         	$testVar = $logClient->publish($sendLog);
@@ -104,9 +103,9 @@ function doRegister($user,$pass,$email){
 	//connect to db
 	
 	$con = mysqli_connect("localhost","root","12345","users") or die(mysqli_error());
-	//local
+	//local- Connected to DB
 	echo "connected to db".PHP_EOL;
-	//event
+	//event - Connected to DB
 	$eventMessage = 'Successfully Connected to Database';
         $sendLog = $logger->logArray('event',$eventMessage,__FILE__);
         $testVar = $logClient->publish($sendLog);
@@ -148,10 +147,10 @@ function doRegister($user,$pass,$email){
 	
 		}
 		else {
-			//local message
+			//local message - Already in DB
 			echo $username." is already in the Database".PHP_EOL;
 			
-			//event message
+			//event message - Already in DB
 			$eventMessage = $username.' is already in the Database';
                         $sendLog = $logger->logArray('event',$eventMessage,__FILE__);
                         $testVar = $logClient->publish($sendLog);
@@ -166,7 +165,12 @@ function requestProcessor($request){
 	echo "received request".PHP_EOL;
 	var_dump($request);
 	if(!isset($request['type'])){
-    		return "ERROR: unsupported message type";
+    		//logging
+		$eventMessage = 'ERROR: unsupported message type';
+                $sendLog = $logger->logArray('error',$eventMessage,__FILE__);
+                $testVar = $logClient->publish($sendLog);
+		//return
+		return "ERROR: unsupported message type";
   	}
   switch ($request['type']){
     case "login":
