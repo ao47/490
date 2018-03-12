@@ -32,8 +32,8 @@ function doLogin($user,$pass){
 	$sendLog = $logger->logArray('event',$eventMessage,__FILE__);
 	$testVar = $logClient->publish($sendLog);
 
-	echo "Successfully Connected to Database".PHP_EOL;
-	echo $user." is attempting to Login".PHP_EOL;
+	echo date('m/d/y h:i:s a' ,time())." Successfully Connected to Database".PHP_EOL;
+	echo date('m/d/y h:i:s a' ,time())." ".$user." is attempting to Login".PHP_EOL;
 	$eventMessage = $user." is attempting to login";
         $sendLog = $logger->logArray('event',$eventMessage,__FILE__);
         $testVar = $logClient->publish($sendLog);
@@ -57,8 +57,8 @@ function doLogin($user,$pass){
 
 		if(($username == $dbusername) && (password_verify($password,$dbpassword))){
 			//internal message
-			echo "username and password verified".PHP_EOL;		
-			echo $user." has logged in".PHP_EOL;
+			echo date('m/d/y h:i:s a' ,time()). " username and password verified".PHP_EOL;		
+			echo date('m/d/y h:i:s a' ,time())." ".$user." has logged in".PHP_EOL;
 	
 
 			//Logging - Logged in
@@ -82,7 +82,7 @@ function doLogin($user,$pass){
 		}
 		else {
 		//internal
-		echo "Wrong Username or Password".PHP_EOL;
+		echo date('m/d/y h:i:s a' ,time())." Wrong Username or Password".PHP_EOL;
 		//logging - Wrong username or password
 		$eventMessage = $user.'\'s username or password is wrong';
         	$sendLog = $logger->logArray('event',$eventMessage,__FILE__);
@@ -94,7 +94,7 @@ function doLogin($user,$pass){
 		}
 	}
 	else {
-		echo "unsuccessful".PHP_EOL;	
+		echo date('m/d/y h:i:s a' ,time())." unsuccessful".PHP_EOL;	
 //			$request = array();
 //          $request['valid']= 'true';
 //          $request['email']= 'email';
@@ -122,7 +122,7 @@ function doRegister($user,$pass,$email){
 
 
 	//local- Connected to DB
-	echo "connected to db".PHP_EOL;
+	echo date('m/d/y h:i:s a' ,time())." Successfully connected to the Database".PHP_EOL;
 	//event - Connected to DB
 	$eventMessage = 'Successfully Connected to Database';
         $sendLog = $logger->logArray('event',$eventMessage,__FILE__);
@@ -140,7 +140,7 @@ function doRegister($user,$pass,$email){
 			$result=mysqli_query($con, $sql);
 			if($result){
 				//local message
-				echo $username. " has successfully Registered".PHP_EOL;
+				echo date('m/d/y h:i:s a' ,time())." ". $username. " has successfully Registered".PHP_EOL;
 				//event
 				
 				$eventMessage = $username.' has successfully registered';
@@ -166,7 +166,7 @@ function doRegister($user,$pass,$email){
 		}
 		else {
 			//local message - Already in DB
-			echo $username." is already in the Database".PHP_EOL;
+			echo date('m/d/y h:i:s a' ,time())." ".$username." is already in the Database".PHP_EOL;
 			
 			//event message - Already in DB
 			$eventMessage = $username.' is already in the Database';
@@ -180,12 +180,12 @@ function doRegister($user,$pass,$email){
 		}
 }
 function requestProcessor($request){
-	echo "received request".PHP_EOL;
+	echo date('m/d/y h:i:s a' ,time())." received request".PHP_EOL;
 	var_dump($request);
 	if(!isset($request['type'])){
     		//logging
-		$eventMessage = 'ERROR: unsupported message type';
-                $sendLog = $logger->logArray('error',$eventMessage,__FILE__);
+		$errorMessage = 'ERROR: unsupported message type';
+                $sendLog = $logger->logArray('error',$errorMessage,__FILE__);
                 $testVar = $logClient->publish($sendLog);
 		//return
 		return "ERROR: unsupported message type";
