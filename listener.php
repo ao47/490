@@ -21,10 +21,10 @@ function doLogin($user,$pass){
 	$con = mysqli_connect("localhost","root","12345","users");
 	//check for connection error and logging
 	if(!$con){
-		$errorMessage = 'Connection Error:'.mysqli_connect_error();
+		$errorMessage = 'Connection Error: '.mysqli_connect_error();
                 $sendLog = $logger->logArray('error',$errorMessage,__FILE__);
                 $testVar = $logClient->publish($sendLog);
-		die("Connection Error:".mysqli_connect_error());
+		die("Connection Error: ".mysqli_connect_error());
 	}
 
 	
@@ -34,8 +34,8 @@ function doLogin($user,$pass){
 	$testVar = $logClient->publish($sendLog);
 
 	echo date('m/d/y h:i:s a' ,time())." Successfully Connected to Database".PHP_EOL;
-	echo date('m/d/y h:i:s a' ,time())." ".$user." is attempting to Login".PHP_EOL;
-	$eventMessage = $user." is attempting to login";
+	echo date('m/d/y h:i:s a' ,time())." Username: ".$user." is attempting to Login".PHP_EOL;
+	$eventMessage = "Username: ".$user." is attempting to login";
         $sendLog = $logger->logArray('event',$eventMessage,__FILE__);
         $testVar = $logClient->publish($sendLog);
 	
@@ -56,12 +56,12 @@ function doLogin($user,$pass){
 
 		if(($username == $dbusername) && (password_verify($password,$dbpassword))){
 			//internal message
-			echo date('m/d/y h:i:s a' ,time()). " username and password verified".PHP_EOL;		
-			echo date('m/d/y h:i:s a' ,time())." ".$user." has logged in".PHP_EOL;
+			echo date('m/d/y h:i:s a' ,time())." ".$user. "'s password has been verified".PHP_EOL;		
+			echo date('m/d/y h:i:s a' ,time())." Username:".$user." has logged in".PHP_EOL;
 	
 
 			//Logging - Logged in
-			$eventMessage = $user.' has logged in.';
+			$eventMessage = 'Username: '.$user.' has logged in.';
                 	$sendLog = $logger->logArray('event',$eventMessage,__FILE__);
                 	$testVar = $logClient->publish($sendLog);	
 			
@@ -81,9 +81,9 @@ function doLogin($user,$pass){
 		}
 		else {
 		//internal
-		echo date('m/d/y h:i:s a' ,time()).$user."/'s  Password is invalid".PHP_EOL;
+		echo date('m/d/y h:i:s a' ,time())." Username: ".$user."'s Password is invalid".PHP_EOL;
 		//logging - Wrong password
-		$eventMessage = $user.'\'s password is incorrect';
+		$eventMessage = 'Username: '.$user.' \'s password is incorrect';
         	$sendLog = $logger->logArray('event',$eventMessage,__FILE__);
         	$testVar = $logClient->publish($sendLog);
 
@@ -93,9 +93,9 @@ function doLogin($user,$pass){
 		}
 	}
 	else {
-		echo date('m/d/y h:i:s a' ,time())." ".$user." Doesn't Exist ".PHP_EOL;	
+		echo date('m/d/y h:i:s a' ,time())." Username: ".$user." Doesn't Exist ".PHP_EOL;	
 		//logging - User doesnt exist
-		$eventMessage = $user.' doesn\'t exist';
+		$eventMessage = 'Username: '.$user.' doesn\'t exist';
                 $sendLog = $logger->logArray('event',$eventMessage,__FILE__);
                 $testVar = $logClient->publish($sendLog);
 		//return array
@@ -114,10 +114,10 @@ function doRegister($user,$pass,$email){
 	$con = mysqli_connect("localhost","root","12345","users");
 	 //check for connection error and logging
         if(!$con){
-                $errorMessage = 'Connection Error:'.mysqli_connect_error();
+                $errorMessage = 'Connection Error: '.mysqli_connect_error();
                 $sendLog = $logger->logArray('error',$errorMessage,__FILE__);
                 $testVar = $logClient->publish($sendLog);
-                die("Connection Error:".mysqli_connect_error());
+                die("Connection Error: ".mysqli_connect_error());
         }
 
 
@@ -140,7 +140,7 @@ function doRegister($user,$pass,$email){
 			$result=mysqli_query($con, $sql);
 			if($result){
 				//local message
-				echo date('m/d/y h:i:s a' ,time())." ". $username. " has successfully Registered".PHP_EOL;
+				echo date('m/d/y h:i:s a' ,time())." Username: ".$username." has successfully Registered".PHP_EOL;
 				//event
 				
 				$eventMessage = $username.' has successfully registered';
@@ -164,10 +164,10 @@ function doRegister($user,$pass,$email){
 		}
 		else {
 			//local message - Already in DB
-			echo date('m/d/y h:i:s a' ,time())." ".$username." is already in the Database".PHP_EOL;
+			echo date('m/d/y h:i:s a' ,time())." Username: ".$username." is already in the Database".PHP_EOL;
 			
 			//event message - Already in DB
-			$eventMessage = $username.' is already in the Database';
+			$eventMessage = 'Username: '.$username.' is already in the Database';
                         $sendLog = $logger->logArray('event',$eventMessage,__FILE__);
                         $testVar = $logClient->publish($sendLog);
 			
@@ -185,21 +185,30 @@ function requestProcessor($request){
 	var_dump($request);
 	if(!isset($request['type'])){
     		//logging
-		$errorMessage = 'ERROR: unsupported message type';
+		echo "Error: Type not set".PHP_EOL;
+		$errorMessage = 'ERROR: type not Set';
                 $sendLog = $logger->logArray('error',$errorMessage,__FILE__);
                 $testVar = $logClient->publish($sendLog);
 		//return
-		return "ERROR: unsupported message type";
-  	}
+		return "ERROR: Type not Set";
+
+}
+
   switch ($request['type']){
     case "login":
       return doLogin($request['username'],$request['password']);
     case "register":
       return doRegister($request['username'],$request['password'],$request['email']);
+	default:{
+		echo "Error: Incorrect Type. Expecting Type login or register. Type is ".$request['type'].PHP_EOL;
+		$errorMessage = "Error: Incorrect Type. Expecting Type login or register. Type is ".$request['type'];
+                $sendLog = $logger->logArray('error',$errorMessage,__FILE__);
+                $testVar = $logClient->publish($sendLog);
+	}
+
   }
   return array("returnCode" => '1', 'message'=>"Server received request and processed");
 }
-
 //Which queue am I accessing?
 
 //localtesting
