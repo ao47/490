@@ -16,7 +16,7 @@ function doLogin($user,$pass){
 
 	//logging variables
 	$logClient = new rabbitMQClient('toLog.ini', 'testServer');
-        $logger = new Logger();
+	$logger = new Logger();
 		
 
 	$con = mysqli_connect("localhost","root","12345","users");
@@ -107,7 +107,7 @@ function doLogin($user,$pass){
 function doRegister($user,$pass,$email){
 	//logger variables
 	$logClient = new rabbitMQClient('toLog.ini', 'testServer');
-        $logger = new Logger();
+	$logger = new Logger();
 
 
 	//connect to db
@@ -183,16 +183,20 @@ function doRegister($user,$pass,$email){
 function doAddComment($commentError,$commentName,$commentContent,$parentCommentId){
 	//logging variables
 	$logClient = new rabbitMQClient('toLog.ini', 'testServer');
-        $logger = new Logger();
+	$logger = new Logger();
 
-//testting
+
 	try{
 		echo date('m/d/y h:i:s a' ,time()).'comment error:'.$commentError .PHP_EOL.date('m/d/y h:i:s a' ,time()).' CommentName: '.$commentName.PHP_EOL.date('m/d/y h:i:s a' ,time()).' commentContent: '.$commentContent.PHP_EOL.date('m/d/y h:i:s a' ,time()).' CommentID: '.$parentCommentId.PHP_EOL;
-	//Connect to Comment DB
-	$connect = new PDO('mysql:host=localhost;dbname=comments', 'root', '12345');
-	$comment_error = '';
-	//$valid = false;
-	//if($commentError === $comment_error){
+		$connect = new PDO('mysql:host=localhost;dbname=comments', 'root', '12345');
+		$comment_error = '';
+
+		//event
+		$eventMessage = 'Successfully Connected to Database while trying to add a comment';
+		$sendLog = $logger->logArray('event',$eventMessage,__FILE__);
+		$testVar = $logClient->publish($sendLog);
+	
+	
 		$valid = true;
 		$query = "INSERT INTO comment (parent_comment_id, comment, comment_sender_name) VALUES (:parent_comment_id, :comment, :comment_sender_name)";
 		$statement = $connect->prepare($query);
@@ -206,6 +210,9 @@ function doAddComment($commentError,$commentName,$commentContent,$parentCommentI
 	catch(PDOException $e)
 	{
 		echo "Error: ". $e->getMessage();
+		$errorMessage = $e->getMessage();
+		$sendLog = $logger->logArray('error',$errorMessage,__FILE__);
+        $testVar = $logClient->publish($sendLog);
 	}	
 	
 	$data = array(
@@ -218,6 +225,10 @@ function doAddComment($commentError,$commentName,$commentContent,$parentCommentI
 // Gets the existing comments, and new comments on forum page
 
 function doGetComment(){
+	//logging
+	$logClient = new rabbitMQClient('toLog.ini', 'testServer');
+	$logger = new Logger();
+
 	global $output;
 	$connect = new PDO('mysql:host=localhost;dbname=comments', 'root', '12345');
 	$query = "SELECT * FROM comment WHERE parent_comment_id = '0' ORDER BY comment_id DESC";
@@ -234,11 +245,13 @@ function doGetComment(){
 	}
 		$request =array();
 		$request['output'] = $output;
-		//var_dump($output); 
-		//echo date('m/d/y h:i:s a' ,time())." ".$output.PHP_EOL;
+		//echo to the command line
 		echo "Output : ".$output.PHP_EOL;
-		echo "var dump: ";
-		var_dump($request);
+		//event logging
+		$eventMessage = 'Successfully retrieved the output. The output is : '.$output;
+		$sendLog = $logger->logArray('event',$eventMessage,__FILE__);
+		$testVar = $logClient->publish($sendLog);		
+		//return request array	
 		return $request;
 }
 
@@ -275,11 +288,10 @@ function requestProcessor($request){
 	echo date('m/d/y h:i:s a' ,time())." received request".PHP_EOL;
 	var_dump($request);
 	if(!isset($request['type'])){
-    		//logging
 		echo "Error: Type not set".PHP_EOL;
 		$errorMessage = 'ERROR: type not Set';
-                $sendLog = $logger->logArray('error',$errorMessage,__FILE__);
-                $testVar = $logClient->publish($sendLog);
+        $sendLog = $logger->logArray('error',$errorMessage,__FILE__);
+        $testVar = $logClient->publish($sendLog);
 		//return
 		return "ERROR: Type not Set";
 	}
@@ -294,10 +306,10 @@ function requestProcessor($request){
 	case "getComment":
 		return doGetComment();
 	default:{
-		echo "Error: Incorrect Type. Expecting Type login or register. Type is ".$request['type'].PHP_EOL;
-		$errorMessage = "Error: Incorrect Type. Expecting Type login or register. Type is ".$request['type'];
-                $sendLog = $logger->logArray('error',$errorMessage,__FILE__);
-                $testVar = $logClient->publish($sendLog);
+		echo "Error: Incorrect Type. Expecting Types login, register, addComment, getComment. Type is ".$request['type'].PHP_EOL;
+		$errorMessage = "Error: Incorrect Type. Expecting Types login, register, addComment, getComment. Type is ".$request['type'];
+        $sendLog = $logger->logArray('error',$errorMessage,__FILE__);
+        $testVar = $logClient->publish($sendLog);
             }
         }
   return array("returnCode" => '1', 'message'=>"Server received request and processed");
